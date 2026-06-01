@@ -1,0 +1,87 @@
+Experiment 1: DevOps-Related Linux Commands
+These commands are essential for managing servers, checking logs, and deploying applications (like your Java app) in a Linux environment.
+
+1. File & Directory Management
+Bash
+# Create a new directory for your app deployment
+mkdir -y /opt/my-java-app
+
+# Move into the directory
+cd /opt/my-java-app
+
+# List all files, including hidden ones (.git, .env), with permissions and sizes
+ls -la
+2. System Monitoring & Process Management
+Bash
+# Check real-time CPU, Memory, and running processes (Press 'q' to exit)
+top
+
+# Check free and used RAM memory on the server in megabytes
+free -m
+
+# Check available disk space on all mounted filesystems
+df -h
+
+# Find the Process ID (PID) of your running Java application
+ps -ef | grep java
+
+# Forcefully stop a stuck background process using its PID (e.g., PID 1234)
+kill -9 1234
+3. Networking & Logs
+Bash
+# Check if your app port (e.g., 8080) is actively listening for traffic
+netstat -tuln | grep 8080
+
+# View the last 50 lines of an application log file and watch new updates live
+tail -50f /var/log/nginx/error.log
+Experiment 2: Implementation of Staging, Commit, and Push on GitHub
+This lifecycle moves your local Java code through Git’s three areas (Working Directory ➔ Staging Area ➔ Local Repository) and pushes it to remote GitHub.
+
+Bash
+# Step 1: Create a new file or make changes to your Java code
+echo "public class Main { }" > Main.java
+
+# Step 2: Check the status of your working directory (shows untracked/modified files)
+git status
+
+# Step 3: STAGING - Move the file to the Staging Area (preparing it for a commit)
+git add Main.java
+# (Alternative: Use 'git add .' to stage all modified files)
+
+# Step 4: COMMIT - Save your staged snapshot permanently to the local repository
+git commit -m "feat: add main entry point file"
+
+# Step 5: PUSH - Upload your local commits to the remote GitHub repository
+git push origin main
+Experiment 3: Modifying Commits, Forking, and Cloning
+This covers how to fix a mistake in your last commit, how to fork an open-source Java repository, and how to work on it locally.
+
+1. Modifying the Last Commit (--amend)
+If you committed code but forgot a file or made a typo in the commit message, you can overwrite the last commit:
+
+Bash
+# Make your forgotten change or fix
+echo "// Added a comment" >> Main.java
+
+# Stage the fix
+git add Main.java
+
+# Modify the previous commit without creating a brand new one
+git commit --amend -m "feat: add main entry point with comments"
+
+# Note: If you already pushed the bad commit to GitHub, you must force push to overwrite it:
+git push origin main --force
+2. Forking and Cloning a Java Repository
+Forking (Done on GitHub UI): Go to any public Java repository on GitHub and click the Fork button in the top right. This creates a duplicate copy of that repository under your GitHub account.
+
+Cloning (Done via Terminal): To download your forked copy to your local machine to start coding, copy your repository's URL and run:
+
+Bash
+# Clone the repository to your local machine
+git clone https://github.com/YOUR_USERNAME/FORKED_JAVA_REPO.git
+
+# Move into the cloned project folder
+cd FORKED_JAVA_REPO
+
+# Verify that 'origin' points to your forked GitHub account
+git remote -v
