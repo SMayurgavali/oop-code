@@ -1,0 +1,97 @@
+Step 1: Initialize Your Java Project and Git
+Run these commands inside your local Java project root directory (where your pom.xml or build.gradle lives).
+
+Bash
+# Initialize local git repository
+git init
+
+# Create a .gitignore file to avoid uploading compiled Java files
+echo "target/\n.gradle/\nbuild/\n*.class\n.dependency-decisions.log" > .gitignore
+
+# Stage all project files
+git add .
+
+# Commit files locally
+git commit -m "Initial commit: Java project with CI/CD setup"
+
+# Rename default branch to main
+git branch -M main
+Step 2: Push Your Project to GitHub
+Go to GitHub, create a new empty repository (do not initialize it with a README), copy its URL, and run:
+
+Bash
+# Link your local project to GitHub (Replace with your actual GitHub URL)
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+
+# Push your code up to GitHub
+git push -u origin main
+Step 3: Create the Jenkinsfile
+Create a file named exactly Jenkinsfile in your project's root folder:
+
+Bash
+touch Jenkinsfile
+Open the file in a text editor and paste this lightweight pipeline script:
+
+Groovy
+pipeline {
+    agent any
+    tools {
+        maven 'maven3' // Must match the name in Jenkins -> Tools
+        jdk 'jdk17'    // Must match the name in Jenkins -> Tools
+    }
+    stages {
+        stage('Clone') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'mvn clean compile'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        stage('Package & Deploy') {
+            steps {
+                sh 'mvn package -DskipTests'
+                echo 'Deploying JAR artifact to target destination...'
+            }
+        }
+    }
+}
+Push this new file to GitHub:
+
+Bash
+git add Jenkinsfile
+git commit -m "Add Jenkinsfile pipeline configuration"
+git push origin main
+Step 4: Configure Jenkins UI
+Open Jenkins in your browser (http://localhost:8080).
+
+Go to Manage Jenkins > Credentials > System > Global credentials > Add Credentials.
+
+Choose Username with password.
+
+Enter your GitHub username and your GitHub Personal Access Token (PAT) as the password.
+
+Set ID to github-creds.
+
+Go back to the dashboard, click New Item, name it, and select Pipeline.
+
+In the configuration window, scroll down to the Pipeline section:
+
+Definition: Select Pipeline script from SCM.
+
+SCM: Select Git.
+
+Repository URL: Paste your GitHub project link.
+
+Credentials: Select github-creds.
+
+Branch Specifier: Change to */main.
+
+Click Save, then click Build Now to run your first pipeline.
