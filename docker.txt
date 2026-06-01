@@ -1,0 +1,77 @@
+Containerization with Docker allows you to package your Java application, its runtime (the JDK), and all its dependencies into a single isolated container that runs identically on any machine—including your Jenkins CI/CD server.
+
+Here is the simple, command-driven process to containerize your Java app.
+
+1. Create a Dockerfile
+In your Java project's root directory, create a file named exactly Dockerfile (no file extension).
+
+Bash
+touch Dockerfile
+Open the file and add the following configuration. This uses a multi-stage build to keep the final production image small and secure:
+
+Dockerfile
+# Stage 1: Build the application using Maven
+FROM maven:3.8.8-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
+
+# Stage 2: Run the application using a lightweight JRE
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+# Copies the packaged JAR file from the build stage
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+2. Essential Docker Commands to Run the App
+Open your terminal in the directory containing the Dockerfile and run these commands:
+
+Build the Docker Image
+This commands reads the Dockerfile and builds an image tagged (-t) as my-java-app.
+
+Bash
+docker build -t my-java-app .
+Run the Container
+This runs the image inside an isolated container.
+
+-d: Runs the container in the background (detached mode).
+
+-p 8080:8080: Maps port 8080 of your local machine to port 8080 inside the container.
+
+Bash
+docker run -d -p 8080:8080 --name running-java-app my-java-app
+Verify and Manage the Container
+Bash
+# Check if your container is running
+docker ps
+
+# View the real-time application logs (useful for debugging)
+docker logs running-java-app
+
+# Stop the running container
+docker stop running-java-app
+
+# Remove the container entirely
+docker rm running-java-app
+3. Integrating Docker into your Jenkins Pipeline
+To automate this inside the Jenkins pipeline you set up earlier, update your Jenkinsfile to build and deploy the Docker container automatically during the final stage.
+
+Replace the Package & Deploy stage in your Jenkinsfile with this:
+
+Groovy
+        stage('Package & Containerize') {
+            steps {
+                // Build the image using the Dockerfile in the repository root
+                sh 'docker build -t my-java-app:latest .'
+            }
+        }
+        stage('Deploy Container') {
+            steps {
+                // Stop and remove the old container if it exists, then start the new one
+                sh '''
+                    docker stop running-java-app || true
+                    docker rm running-java-app || true
+                    docker run -d -p 8080:8080 --name running-java-app my-java-app:latest
+                '''
+            }
+        }
